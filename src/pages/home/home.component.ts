@@ -47,6 +47,14 @@ export class HomeComponent implements OnInit {
         this.currentlyEditing = null;
     }
     
+    onReminderDelete(reminder: IReminder) {
+        if (confirm('Are you sure you want to delete this reminder?')) {
+            this.reminderService.remove(reminder).subscribe(res => {
+                this.refreshReminders();
+            });
+        }
+    }
+
     onReminderStartEdit(reminder: IReminder) {
 
         if (this.currentlyEditing)

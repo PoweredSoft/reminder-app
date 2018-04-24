@@ -26,6 +26,9 @@ export class ReminderComponent implements OnInit {
     @Input()
     onStartEdit: any;
 
+    @Input()
+    onDelete: any;
+
     editing: IReminder = null;
 
     public constructor() {
@@ -39,6 +42,11 @@ export class ReminderComponent implements OnInit {
     ngOnInit(): void {
         if (!this.reminder.id)
             this.editing = this.reminder;
+    }
+
+    removeMe() {
+        if (this.onDelete)
+        this.onDelete(this.reminder);
     }
 
     startEdit() {

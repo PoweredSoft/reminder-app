@@ -1,7 +1,12 @@
 
 
 <div class="container" style="margin-top: 20px;">
-    <button class="btn" (click)="newReminder()">New Reminder</button>
+    <button class="btn btn-primary" (click)="newReminder()">New Reminder</button>
     <br /><br/>
-    <reminder *ngFor="let r of reminders" [reminder]="r" [onCancel]="onReminderCancel.bind(this)" [onSave]="onReminderSave.bind(this)" [onStartEdit]="onReminderStartEdit.bind(this)"></reminder>
+    <reminder *ngFor="let r of reminders" [reminder]="r" 
+        [onCancel]="onReminderCancel.bind(this)"
+        [onSave]="onReminderSave.bind(this)" 
+        [onDelete]="onReminderDelete.bind(this)"
+        [onStartEdit]="onReminderStartEdit.bind(this)">
+    </reminder>
 </div>

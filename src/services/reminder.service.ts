@@ -6,6 +6,7 @@ import { Observer } from "rxjs/Observer";
 @Injectable()
 export class ReminderService
 {
+    
     constructor() {
     }
 
@@ -50,6 +51,21 @@ export class ReminderService
             return c; 
         }, 1);
     }
+
+    remove(reminder: IReminder): Observable<boolean> {
+        return Observable.create(o => {
+            this.getReminders().subscribe(reminders => {
+                let newReminders = reminders.filter(t => t.id != reminder.id);
+                this.setReminderInLocalStorage(newReminders);
+                o.next(true);
+                o.complete();
+            }, error => {   
+                o.error(error);
+                o.complete();
+            });
+        });
+    }
+    
 
     saveReminder(reminder: IReminder) : Observable<IReminder> {
         return Observable.create((o: Observer<IReminder>) => {
