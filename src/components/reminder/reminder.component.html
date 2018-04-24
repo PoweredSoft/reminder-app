@@ -1,0 +1,101 @@
+<div class="card bg-dark text-white">
+    <div class="card-header" (click)="startEdit()">{{reminder.name}}
+        <div class="text-right">{{ summary }}</div>
+    </div>
+    <div class="card-body" *ngIf="editing">
+        <div class="row">
+            <div class="col">
+                <div class="form-group">
+                    <label>Type: </label>
+                    <select [(ngModel)]="editing.type" class="form-control">
+                        <option [value]="simpleType">Simple</option>
+                        <option [value]="complexType">Complex</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col">
+                <div class="form-group">
+                    <label>Name: </label>
+                    <input type="text" class="card-title form-control" [(ngModel)]="editing.name" />
+                </div>
+            </div>
+        </div>
+
+
+
+        <div class="form-group">
+            <label>Message: </label>
+            <textarea class="form-control" [(ngModel)]="editing.message" rows="5"></textarea>
+        </div>
+
+
+
+        <div class="row" *ngIf="editing.type == simpleType">
+            <div class="col">
+                <div class="form-group">
+                    <label>Date</label>
+                    <input class="form-control" bsDatepicker [(ngModel)]="editing.date" [bsConfig]="{ dateInputFormat: 'YYYY-MM-DD' }">
+                </div>
+            </div>
+            <div class="col">
+                <div class="form-group">
+                    <label>Time</label>
+                    <timepicker [(ngModel)]="editing.date"></timepicker>
+                </div>
+            </div>
+        </div>
+
+        <div class="row" *ngIf="editing.type == complexType">
+
+            <div class="col">
+                <div class="form-group">
+                    <label>From</label>
+                    <timepicker [(ngModel)]="editing.fromTime"></timepicker>
+                </div>
+            </div>
+
+            <div class="col">
+                <div class="form-group">
+                    <label>To</label>
+                    <timepicker [(ngModel)]="editing.toTime"></timepicker>
+                </div>
+            </div>
+
+            <div class="col">
+                <div class="form-group">
+                    <label>Days of the week:</label>
+                    <br/>
+                    <div class="btn-group">
+                        <label class="btn btn-primary" [(ngModel)]="editing.sunday" btnCheckbox tabindex="0" role="button">S</label>
+                        <label class="btn btn-primary" [(ngModel)]="editing.monday" btnCheckbox tabindex="0" role="button">M</label>
+                        <label class="btn btn-primary" [(ngModel)]="editing.tuesday" btnCheckbox tabindex="0" role="button">T</label>
+                        <label class="btn btn-primary" [(ngModel)]="editing.wednesday" btnCheckbox tabindex="0" role="button">W</label>
+                        <label class="btn btn-primary" [(ngModel)]="editing.thursday" btnCheckbox tabindex="0" role="button">T</label>
+                        <label class="btn btn-primary" [(ngModel)]="editing.friday" btnCheckbox tabindex="0" role="button">F</label>
+                        <label class="btn btn-primary" [(ngModel)]="editing.saturday" btnCheckbox tabindex="0" role="button">S</label>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="col">
+                <div class="form-group">
+                    <label>Interval</label>
+                    <input class="form-control" type="number" [(ngModel)]="editing.interval" />
+                </div>
+            </div>
+
+            <div class="col">
+                <div class="form-group">
+                    <label>Int Type:</label>
+                    <select [(ngModel)]="editing.intervalType" class="form-control">
+                        <option *ngFor="let ii of intervalTypes" [value]="ii.value">{{ii.text}}</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn btn-success" (click)="save()">Save</button>
+        <button class="btn btn-cancel" (click)="cancel()">Cancel</button>
+    </div>
+</div>
