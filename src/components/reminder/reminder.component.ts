@@ -12,7 +12,6 @@ export class ReminderComponent implements OnInit {
     intervalTypes: { value: IntervalType; text: string; }[];
 
     public complexType = ReminderType.Complex;
-    public simpleType = ReminderType.Simple;
     
     @Input()
     reminder: IReminder;
@@ -74,11 +73,9 @@ export class ReminderComponent implements OnInit {
     get summary(): string {
         let ret = ``;
 
-        if (this.reminder.type == ReminderType.Simple) {
+        if (this.reminder.type == ReminderType.Complex) {
 
-            let simpleReminder = this.reminder as IReminderSimple;
-            ret += `${moment(simpleReminder.date).format('DD MMM YYYY  h:mm:ss A ')}`;
-        } else {
+
             let complexReminder = this.reminder as IReminderComplex;
 
         

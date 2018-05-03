@@ -160,8 +160,6 @@ export class ReminderService
             if (secondsDifference > 3) 
                 return false;
 
-            console.log('got here');
-
             let latestReminder = this._latestRemindings.find(t => t.reminderId == reminder.id);
             if (!latestReminder) {
                 this.setLatestReminder(reminder, now);
@@ -193,7 +191,12 @@ export class ReminderService
                 
                 return false;
             }).forEach(reminder => {
-                console.log(reminder.message, moment());
+                
+                Notification.requestPermission(status => {
+                    let notification = new Notification(reminder.name, {
+                        body: reminder.message
+                    });
+                });
             });
 
         }, 1000);

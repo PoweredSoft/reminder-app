@@ -8,14 +8,31 @@ import { ReminderService } from "../../services/reminder.service";
 })
 export class HomeComponent implements OnInit {
 
+    notificationStatus: string;
     currentlyEditing: IReminder;
     public intervalTypes: { value: IntervalType; text: string; }[];
     public reminders: IReminder[];
+
+
 
     
 
     public constructor(protected reminderService: ReminderService) {
 
+    }
+
+    get notificationStatusClasses() {
+
+        let strClass: string;
+        if (this.notificationStatus == "granted") {
+            strClass = "success";
+        } else if (this.notificationStatus == "denied") {
+            strClass = "danger";
+        } else {
+            strClass = "warning";
+        }
+
+        return `alert alert-${strClass}`;
     }
 
     protected refreshReminders () {
@@ -25,6 +42,11 @@ export class HomeComponent implements OnInit {
     }
 
     ngOnInit(): void {
+
+        Notification.requestPermission(status => {
+            this.notificationStatus = status;
+        });
+
         this.refreshReminders();
     }   
 

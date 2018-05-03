@@ -1,8 +1,7 @@
 
 export enum ReminderType
 {
-    Simple,
-    Complex
+    Complex = 1
 }
 
 export enum IntervalType {

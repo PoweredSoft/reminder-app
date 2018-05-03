@@ -1,5 +1,6 @@
 
 
+
 <div class="container" style="margin-top: 20px;">
     <button class="btn btn-primary" (click)="newReminder()">New Reminder</button>
     <br /><br/>
@@ -9,4 +10,7 @@
         [onDelete]="onReminderDelete.bind(this)"
         [onStartEdit]="onReminderStartEdit.bind(this)">
     </reminder>
+
+    <br/>
+    <div [class]="notificationStatusClasses">Notification permission status: {{notificationStatus}}</div>
 </div>
