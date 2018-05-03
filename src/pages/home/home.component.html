@@ -2,7 +2,8 @@
 
 
 <div class="container" style="margin-top: 20px;">
-    <button class="btn btn-primary" (click)="newReminder()">New Reminder</button>
+    <button class="btn btn-primary btn-sm" (click)="newReminder()">New Reminder</button>
+    <button (click)="grantPermission()" class="btn btn-primary btn-sm">Enable Notifications</button>
     <br /><br/>
     <reminder *ngFor="let r of reminders" [reminder]="r" 
         [onCancel]="onReminderCancel.bind(this)"
@@ -12,5 +13,9 @@
     </reminder>
 
     <br/>
-    <div [class]="notificationStatusClasses">Notification permission status: {{notificationStatus}}</div>
+    <div [class]="notificationStatusClasses">
+        Notification permission status: {{notificationStatus}}
+        <br/>
+        
+    </div>
 </div>

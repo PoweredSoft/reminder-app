@@ -12,13 +12,16 @@ export class HomeComponent implements OnInit {
     currentlyEditing: IReminder;
     public intervalTypes: { value: IntervalType; text: string; }[];
     public reminders: IReminder[];
-
-
-
     
 
     public constructor(protected reminderService: ReminderService) {
+        this.notificationStatus = (Notification as any).permission;
+    }
 
+    grantPermission() {
+        Notification.requestPermission(status => {
+            this.notificationStatus = status;
+        });
     }
 
     get notificationStatusClasses() {
@@ -43,9 +46,7 @@ export class HomeComponent implements OnInit {
 
     ngOnInit(): void {
 
-        Notification.requestPermission(status => {
-            this.notificationStatus = status;
-        });
+        
 
         this.refreshReminders();
     }   

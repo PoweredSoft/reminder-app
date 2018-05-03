@@ -4,7 +4,6 @@ import { IReminder, ReminderType, IReminderComplex, IntervalType } from "../mode
 import { Observer } from "rxjs/Observer";
 import { Subject } from "rxjs/Subject";
 import { moment, Khronos } from "ngx-bootstrap/chronos/test/chain";
-import { start } from "repl";
 import { Moment } from "moment";
 
 @Injectable()
@@ -12,10 +11,11 @@ export class ReminderService
 {
     protected _reminders: IReminder[] = [];
     protected _subjectReminder: Subject<IReminder> = null;
-    protected _latestRemindings: Array<{ reminderId: number, lastTime: Date }> = [];
+    protected _latestRemindings: Array<number> = [];
 
     constructor() {
         this.refreshReminderPlanning();
+        this.startLoop();
     }
 
     getReminders() : Observable<IReminder[]> {
@@ -55,7 +55,7 @@ export class ReminderService
 
     private getNextId(reminders: IReminder[]) : number {
         return reminders.reduce((c, t) => {
-            if (t.id > c) 
+            if (t.id >= c) 
                 return t.id+1;
             return c; 
         }, 1);
@@ -105,17 +105,6 @@ export class ReminderService
         return intervalTypeString;
     }
 
-    protected setLatestReminder(reminder: IReminder, now: Khronos) {
-        let latestReminder = this._latestRemindings.find(t => t.reminderId == reminder);
-        if (latestReminder)
-            latestReminder.lastTime = now._date;
-        else
-            this._latestRemindings.push({
-                reminderId: reminder.id,
-                lastTime: now._date
-            });
-    }
-
     protected getCurrentComplexReminder(reminder: IReminderComplex, now: Khronos) : Khronos {
 
         let dateStr = moment().format('YYYY-MM-DD');
@@ -157,30 +146,24 @@ export class ReminderService
             let diff = now.diff(currentReminder);
             let duration = moment.duration(diff);
             let secondsDifference = duration.as('seconds');
+            console.log(secondsDifference);
             if (secondsDifference > 3) 
                 return false;
 
-            let latestReminder = this._latestRemindings.find(t => t.reminderId == reminder.id);
+            let latestReminder = this._latestRemindings.find(t => t == reminder.id);
             if (!latestReminder) {
-                this.setLatestReminder(reminder, now);
+                this._latestRemindings.push(reminder.id);
+                setTimeout(() => {
+                    this._latestRemindings = this._latestRemindings.filter(t => t != reminder.id);
+                }, 4000);
                 return true;
-            } else {
-                let diff = moment.duration(now.diff(latestReminder.lastTime));
-                let secondsSince = diff.as('seconds');
-                if (secondsSince > 3) {
-                    this.setLatestReminder(reminder, now);
-                    return true;
-                }
-            }
-
+            } 
         }
-
-        
 
         return false;
     }
 
-    protected refreshReminderPlanning() {
+    protected startLoop() {
 
         setInterval(() => {
     
@@ -190,17 +173,23 @@ export class ReminderService
                     return this.handleComplexReminder(reminder as IReminderComplex);
                 
                 return false;
-            }).forEach(reminder => {
-                
-                Notification.requestPermission(status => {
-                    let notification = new Notification(reminder.name, {
-                        body: reminder.message
-                    });
-                });
             });
+            
+            if (remindersToShow.length) {
 
+                let text = remindersToShow.map(t => t.message).join("\n");
+                let status = (Notification as any).permission;
+                if (status === 'granted') {
+                    let notification = new Notification('Reminders', <any>{
+                        body: text,
+                        requireInteraction: true                        
+                    });
+                }
+            }
         }, 1000);
+    }
 
+    protected refreshReminderPlanning() {
         this.getReminders().subscribe(reminders => {
             this._reminders = reminders;
         });
