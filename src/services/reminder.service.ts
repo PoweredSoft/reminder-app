@@ -1,13 +1,21 @@
 import { Injectable } from "@angular/core";
 import { Observable } from "rxjs/Observable";
-import { IReminder } from "../models/definitions";
+import { IReminder, ReminderType, IReminderComplex, IntervalType } from "../models/definitions";
 import { Observer } from "rxjs/Observer";
+import { Subject } from "rxjs/Subject";
+import { moment, Khronos } from "ngx-bootstrap/chronos/test/chain";
+import { start } from "repl";
+import { Moment } from "moment";
 
 @Injectable()
 export class ReminderService
 {
-    
+    protected _reminders: IReminder[] = [];
+    protected _subjectReminder: Subject<IReminder> = null;
+    protected _latestRemindings: Array<{ reminderId: number, lastTime: Date }> = [];
+
     constructor() {
+        this.refreshReminderPlanning();
     }
 
     getReminders() : Observable<IReminder[]> {
@@ -34,6 +42,7 @@ export class ReminderService
 
     private setReminderInLocalStorage(reminders: IReminder[]) {
         localStorage.setItem('reminders', JSON.stringify(reminders));
+        this.refreshReminderPlanning();
     }
 
     private getIndex(reminders: IReminder[], id: number) : number {
@@ -65,7 +74,134 @@ export class ReminderService
             });
         });
     }
+
+    get subjectReminder() : Observable<IReminder> {
+
+        if (!this._subjectReminder) {
+            this._subjectReminder = new Subject<IReminder>();
+        }
+
+        return this._subjectReminder.asObservable();
+    }
     
+    protected isActivatedToday(reminder: IReminderComplex, now: Date): boolean {
+        let dayIndex = now.getDay();
+        if (dayIndex == 0 && reminder.sunday) return true;
+        if (dayIndex == 1 && reminder.monday) return true;
+        if (dayIndex == 2 && reminder.tuesday) return true;
+        if (dayIndex == 3 && reminder.wednesday) return true;
+        if (dayIndex == 4 && reminder.thursday) return true;
+        if (dayIndex == 5 && reminder.friday) return true;
+        if (dayIndex == 6 && reminder.saturday) return true;
+        return false;
+    }
+
+    protected intervalTypeToMomentIntervalString(intervalType: IntervalType) : "hours" | "minutes" 
+    {
+        let intervalTypeString: "hours" | "minutes" = 'hours';
+        if (intervalType == IntervalType.Minute)
+            intervalTypeString = 'minutes';
+
+        return intervalTypeString;
+    }
+
+    protected setLatestReminder(reminder: IReminder, now: Khronos) {
+        let latestReminder = this._latestRemindings.find(t => t.reminderId == reminder);
+        if (latestReminder)
+            latestReminder.lastTime = now._date;
+        else
+            this._latestRemindings.push({
+                reminderId: reminder.id,
+                lastTime: now._date
+            });
+    }
+
+    protected getCurrentComplexReminder(reminder: IReminderComplex, now: Khronos) : Khronos {
+
+        let dateStr = moment().format('YYYY-MM-DD');
+        let fromStr = moment(reminder.fromTime).format('HH:mm');
+        let toStr = moment(reminder.toTime).format('HH:mm');
+
+        let startTime = moment(`${dateStr} ${fromStr}`, 'YYYYY-MM-DD HH:mm');
+        let endTime = moment(`${dateStr} ${toStr}`, 'YYYYY-MM-DD HH:mm');
+
+        let intervalType = this.intervalTypeToMomentIntervalString(reminder.intervalType);
+        let timeTable = [];
+        for(let it = moment(startTime) ; it.isSameOrBefore(endTime) ; it.add(reminder.interval, intervalType)) {
+            if (moment.duration(it.diff(now)).as('seconds') < 58)
+                timeTable.push(moment(it));
+        }
+        
+        let time = timeTable.reverse().find(t => t.isSameOrBefore(now));
+        return time;
+    }
+
+    protected handleComplexReminder(reminder: IReminderComplex) : boolean {
+
+        let now = moment();
+
+        if (!this.isActivatedToday(reminder, now._date))
+            return false;
+
+        let intervalTypeString = this.intervalTypeToMomentIntervalString(reminder.intervalType);
+        let startTime = moment(moment(reminder.fromTime).format('HH:mm'), 'HH:mm').subtract(3, "seconds");
+        let endTime = moment(moment(reminder.toTime).format('HH:mm'), 'HH:mm').add(3, "seconds");
+        let nowTime = moment(now.format('HH:mm'), 'HH:mm');
+
+        if (!nowTime.isBetween(startTime, endTime)) 
+            return false;      
+
+        let currentReminder = this.getCurrentComplexReminder(reminder, now);
+        if (currentReminder) {
+
+            let diff = now.diff(currentReminder);
+            let duration = moment.duration(diff);
+            let secondsDifference = duration.as('seconds');
+            if (secondsDifference > 3) 
+                return false;
+
+            console.log('got here');
+
+            let latestReminder = this._latestRemindings.find(t => t.reminderId == reminder.id);
+            if (!latestReminder) {
+                this.setLatestReminder(reminder, now);
+                return true;
+            } else {
+                let diff = moment.duration(now.diff(latestReminder.lastTime));
+                let secondsSince = diff.as('seconds');
+                if (secondsSince > 3) {
+                    this.setLatestReminder(reminder, now);
+                    return true;
+                }
+            }
+
+        }
+
+        
+
+        return false;
+    }
+
+    protected refreshReminderPlanning() {
+
+        setInterval(() => {
+    
+            
+            let remindersToShow = this._reminders.filter(reminder => {
+                if (reminder.type == ReminderType.Complex) 
+                    return this.handleComplexReminder(reminder as IReminderComplex);
+                
+                return false;
+            }).forEach(reminder => {
+                console.log(reminder.message, moment());
+            });
+
+        }, 1000);
+
+        this.getReminders().subscribe(reminders => {
+            this._reminders = reminders;
+        });
+    }
 
     saveReminder(reminder: IReminder) : Observable<IReminder> {
         return Observable.create((o: Observer<IReminder>) => {
