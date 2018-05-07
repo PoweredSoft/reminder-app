@@ -10,7 +10,7 @@ import { Moment } from "moment";
 export class ReminderService
 {
     protected _reminders: IReminder[] = [];
-    protected _subjectReminder: Subject<IReminder> = null;
+    protected _subjectReminder: Subject<IReminder[]> = null;
     protected _latestRemindings: Array<number> = [];
 
     constructor() {
@@ -75,10 +75,10 @@ export class ReminderService
         });
     }
 
-    get subjectReminder() : Observable<IReminder> {
+    get subjectReminder() : Observable<IReminder[]> {
 
         if (!this._subjectReminder) {
-            this._subjectReminder = new Subject<IReminder>();
+            this._subjectReminder = new Subject<IReminder[]>();
         }
 
         return this._subjectReminder.asObservable();
@@ -174,16 +174,8 @@ export class ReminderService
                 return false;
             });
             
-            if (remindersToShow.length) {
-
-                let text = remindersToShow.map(t => t.message).join("\n");
-                let status = (Notification as any).permission;
-                if (status === 'granted') {
-                    let notification = new Notification('Reminders', <any>{
-                        body: text                  
-                    });
-                }
-            }
+            if (remindersToShow.length) 
+                this._subjectReminder.next(remindersToShow);
         }, 1000);
     }
 

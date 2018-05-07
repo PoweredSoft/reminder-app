@@ -1,6 +1,7 @@
 import { Component, OnInit } from "@angular/core";
 import { IReminder, ReminderType, IReminderComplex, IntervalType, IReminderSimple } from "../../models/definitions";
 import { ReminderService } from "../../services/reminder.service";
+import * as moment from 'moment';
 
 @Component({
     selector: 'page-home',
@@ -8,6 +9,8 @@ import { ReminderService } from "../../services/reminder.service";
 })
 export class HomeComponent implements OnInit {
 
+    lastNotification: string = '';
+    lastNotificationTimeStr: string;
     notificationStatus: string;
     currentlyEditing: IReminder;
     public intervalTypes: { value: IntervalType; text: string; }[];
@@ -16,6 +19,22 @@ export class HomeComponent implements OnInit {
 
     public constructor(protected reminderService: ReminderService) {
         this.notificationStatus = (Notification as any).permission;
+        this.reminderService.subjectReminder.subscribe(reminders => {
+            this.notifyReminders(reminders);
+        });
+    }
+
+    notifyReminders(reminders: IReminder[]) {
+
+        let text = reminders.map(t => t.message).join("\n");
+        this.lastNotification = text;
+        this.lastNotificationTimeStr = moment().format('YYYY-MM-DD HH:mm');
+        let status = (Notification as any).permission;
+        if (status === 'granted') {
+            let notification = new Notification('Reminders', <any>{
+                body: text                  
+            });
+        }
     }
 
     grantPermission() {

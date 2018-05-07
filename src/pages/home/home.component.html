@@ -13,9 +13,9 @@
     </reminder>
 
     <br/>
-    <div [class]="notificationStatusClasses">
+    <div [class]="notificationStatusClasses" *ngIf="notificationStatus != 'granted'">
         Notification permission status: {{notificationStatus}}
         <br/>
-        
     </div>
+    <pre class="alert alert-info" *ngIf="lastNotification">{{ lastNotificationTimeStr }} : {{lastNotification}}</pre>
 </div>
