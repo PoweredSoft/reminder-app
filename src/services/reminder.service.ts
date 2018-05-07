@@ -146,7 +146,6 @@ export class ReminderService
             let diff = now.diff(currentReminder);
             let duration = moment.duration(diff);
             let secondsDifference = duration.as('seconds');
-            console.log(secondsDifference);
             if (secondsDifference > 3) 
                 return false;
 
@@ -181,8 +180,7 @@ export class ReminderService
                 let status = (Notification as any).permission;
                 if (status === 'granted') {
                     let notification = new Notification('Reminders', <any>{
-                        body: text,
-                        requireInteraction: true                        
+                        body: text                  
                     });
                 }
             }
